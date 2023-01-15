@@ -1,1 +1,1 @@
-Original demonstration SQL written on [mode](https://app.mode.com/)
+Original demonstration SQL written using [mode](https://app.mode.com/)
