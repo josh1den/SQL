@@ -129,3 +129,85 @@ SELECT
       INTERVAL '1 week' AS datetime_plus_interval
 FROM tutorial.sf_crime_incidents_2014_01
 LIMIT 1;
+
+/*
+Extract pieces of the date one by one
+*/
+
+SELECT
+       cleaned_date,
+       EXTRACT('year'   FROM cleaned_date) AS year,
+       EXTRACT('month'  FROM cleaned_date) AS month,
+       EXTRACT('day'    FROM cleaned_date) AS day,
+       EXTRACT('hour'   FROM cleaned_date) AS hour,
+       EXTRACT('minute' FROM cleaned_date) AS minute,
+       EXTRACT('second' FROM cleaned_date) AS second,
+       EXTRACT('decade' FROM cleaned_date) AS decade,
+       EXTRACT('dow'    FROM cleaned_date) AS day_of_week
+FROM tutorial.sf_crime_incidents_cleandate
+LIMIT 1;
+
+/*
+Round dates to nearest unit of measurement
+*/
+
+SELECT
+       cleaned_date,
+       DATE_TRUNC('year'   , cleaned_date) AS year,
+       DATE_TRUNC('month'  , cleaned_date) AS month,
+       DATE_TRUNC('week'   , cleaned_date) AS week,
+       DATE_TRUNC('day'    , cleaned_date) AS day,
+       DATE_TRUNC('hour'   , cleaned_date) AS hour,
+       DATE_TRUNC('minute' , cleaned_date) AS minute,
+       DATE_TRUNC('second' , cleaned_date) AS second,
+       DATE_TRUNC('decade' , cleaned_date) AS decade
+FROM tutorial.sf_crime_incidents_cleandate
+LIMIT 1;
+
+/*
+Write a query that casts the number of incidents per week
+*/
+
+with sub AS (
+  SELECT
+      incidnt_num AS incident,
+      (SUBSTR(date, 7, 4) || '-' || LEFT(date, 2) || '-' || SUBSTR(date, 4, 2) || ' ' || time || ':00')::timestamp AS datetime
+  FROM tutorial.sf_crime_incidents_2014_01
+)
+
+SELECT
+      DATE_TRUNC('week', datetime)::date AS week,
+      COUNT(*)
+FROM sub
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 10;
+
+/*
+Write a query that counts the number of companies founded and acquired by
+quarter starting in Q1 2012. Create the aggregations in two separate queries,
+then join them.
+*/
+
+SELECT
+      COALESCE(c.quarter, a.quarter) AS quarter,
+      c.companies_founded,
+      a.companies_acquired
+FROM (
+      SELECT
+            founded_quarter AS quarter,
+            COUNT(permalink) AS companies_founded
+      FROM tutorial.crunchbase_companies
+      WHERE founded_year >= 2012
+      GROUP BY 1
+    ) c
+LEFT JOIN (
+          SELECT
+                acquired_quarter AS quarter,
+                COUNT(DISTINCT company_permalink) AS companies_acquired
+          FROM tutorial.crunchbase_acquisitions
+          WHERE acquired_year >= 2012
+          GROUP BY 1
+    ) a
+ON c.quarter = a.quarter
+ORDER BY 1
