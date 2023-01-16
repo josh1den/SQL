@@ -84,3 +84,48 @@ SELECT location,
        TRIM(trailing ')' FROM RIGHT(location, LENGTH(location) -
        POSITION(',' IN location) ) ) AS longitude
   FROM tutorial.sf_crime_incidents_2014_01;
+
+/*
+Concatenate the lat and lon fields to form a field that is equivalent
+to the location field.
+*/
+
+SELECT
+      lat,
+      lon,
+      '(' || lat || ', ' || lon || ')' AS coords
+FROM tutorial.sf_crime_incidents_2014_01
+LIMIT 1;
+
+/*
+Write a query that creates a date column formatted YYYY-MM-DD
+*/
+
+SELECT
+      SUBSTR(date, 7, 4) || '-' || LEFT(date, 2) || '-' || SUBSTR(date, 4, 2)
+      AS cleaned_date
+FROM tutorial.sf_crime_incidents_2014_01
+LIMIT 1;
+
+
+/*
+Write a query that returns the category field with the first letter capitalized
+and the rest in lower case
+*/
+SELECT
+      UPPER(LEFT(category, 1)) || LOWER(RIGHT(category, LENGTH(category)-1)) AS
+      category
+FROM tutorial.sf_crime_incidents_2014_01
+LIMIT 1;
+
+/*
+Write a query that creates an accurate timestamp using the date and time columns
+in tutorial.sf_crime_incidents_2014_01. Include a field that is exactly 1 week
+later as well.
+*/
+SELECT
+      (SUBSTR(date, 7, 4) || '-' || LEFT(date, 2) || '-' || SUBSTR(date, 4, 2) || ' ' || time || ':00')::timestamp AS datetime,
+      (SUBSTR(date, 7, 4) || '-' || LEFT(date, 2) || '-' || SUBSTR(date, 4, 2) || ' ' || time || ':00')::timestamp +
+      INTERVAL '1 week' AS datetime_plus_interval
+FROM tutorial.sf_crime_incidents_2014_01
+LIMIT 1;
